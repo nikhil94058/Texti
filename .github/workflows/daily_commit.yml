@@ -2,7 +2,12 @@ name: Nikhil's Daily Commit
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs daily at midnight UTC
+    - cron: "25 13 * * *" # Runs daily at 18:55 IST (13:25 UTC)
+    - cron: "0 0 * * *" # Runs daily at midnight UTC (05:30 IST)
+  workflow_dispatch: # Allows manual runs from GitHub Actions UI
+
+permissions:
+  contents: write
 
 jobs:
   commit:
@@ -13,6 +18,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: main
+          persist-credentials: false
 
       - name: Create or update commit file
         run: |
@@ -37,7 +43,5 @@ jobs:
       - name: Commit and push changes
         run: |
           git add commit_number.md
-          git commit -m "Daily commit: updated commit count"
-          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/nikhil94058/<YOUR_REPOSITORY>.git
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          git commit -m "Daily commit: updated commit count" || echo "No changes to commit"
+          git push origin HEAD:main
