@@ -1,31 +1,35 @@
 name: Nikhil's Daily Commit
 
+# Trigger: daily at 18:55 IST (13:25 UTC) and manual runs
 on:
   schedule:
-    - cron: "25 13 * * *" # Runs daily at 18:55 IST (13:25 UTC)
-    - cron: "0 0 * * *" # Runs daily at midnight UTC (05:30 IST)
-  workflow_dispatch: # Allows manual runs from GitHub Actions UI
+    - cron: "25 13 * * *" # 18:55 IST
+  workflow_dispatch: # allows manual runs
 
 permissions:
-  contents: write
+  contents: write # needed for push via GITHUB_TOKEN
 
 jobs:
   commit:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           ref: main
           persist-credentials: false
 
+      # Create or update commit_number.md
       - name: Create or update commit file
         run: |
           FILE="commit_number.md"
+          TODAY=$(date +"%Y-%m-%d IST")  # add current IST date
           if [ ! -f "$FILE" ]; then
             echo "Hello, my name is Nikhil" > "$FILE"
             echo "commit number: 1" >> "$FILE"
+            echo "Date: $TODAY" >> "$FILE"
           else
             CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
             if [ -z "$CURRENT_COUNT" ]; then
@@ -33,13 +37,16 @@ jobs:
             fi
             NEXT_COUNT=$((CURRENT_COUNT + 1))
             sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
+            sed -i "/Date:/c\Date: $TODAY" "$FILE"
           fi
 
+      # Configure Git user
       - name: Configure Git
         run: |
           git config --global user.name "nikhil94058"
           git config --global user.email "nikhild.ug22@gmail.com"
 
+      # Commit and push changes
       - name: Commit and push changes
         run: |
           git add commit_number.md
